@@ -5,7 +5,7 @@ option go_package = "/OrderManagement;OrderManagement";
 service OrderManagement {
     rpc addOrder(Order) returns (OrderID);
     rpc getOrder(OrderID) returns (Order);
-    // rpc searchOrders(StringValue) returns (stream Order);
+    rpc searchOrders(OrderID) returns (stream Order);
     // rpc updateOrders(stream Order) returns (StringValue);
     // rpc processOrders(stream StringValue) returns (stream CombinedShipment);
 }

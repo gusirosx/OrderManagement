@@ -3,8 +3,10 @@ package main
 import (
 	pb "OrderManagement/ecommerce"
 	"context"
+	"fmt"
 	"log"
 	"net"
+	"strings"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -42,26 +44,24 @@ func (s *server) GetOrder(ctx context.Context, orderId *pb.OrderID) (*pb.Order, 
 
 }
 
-// // Server-side Streaming RPC
-// func (s *server) SearchOrders(searchQuery *wrappers.StringValue, stream pb.OrderManagement_SearchOrdersServer) error {
+// Server-side Streaming RPC
+func (s *server) SearchOrders(searchQuery *pb.OrderID, stream pb.OrderManagement_SearchOrdersServer) error {
 
-// 	for key, order := range orderMap {
-// 		log.Print(key, order)
-// 		for _, itemStr := range order.Items {
-// 			log.Print(itemStr)
-// 			if strings.Contains(itemStr, searchQuery.Value) {
-// 				// Send the matching orders in a stream
-// 				err := stream.Send(&order)
-// 				if err != nil {
-// 					return fmt.Errorf("error sending message to stream : %v", err)
-// 				}
-// 				log.Print("Matching Order Found : " + key)
-// 				break
-// 			}
-// 		}
-// 	}
-// 	return nil
-// }
+	for key, order := range OrderMap {
+		for _, itemStr := range order.Items {
+			if strings.Contains(itemStr, searchQuery.Message) {
+				// Send the matching orders in a stream
+				err := stream.Send(&order)
+				if err != nil {
+					return fmt.Errorf("error sending message to stream : %v", err)
+				}
+				log.Print("Matching Order Found : " + key)
+				break
+			}
+		}
+	}
+	return nil
+}
 
 // // Client-side Streaming RPC
 // func (s *server) UpdateOrders(stream pb.OrderManagement_UpdateOrdersServer) error {

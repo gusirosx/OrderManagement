@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"io"
 	"log"
 	"time"
 
@@ -33,21 +34,21 @@ func main() {
 	}
 	log.Print("GetOrder Response -> : ", retrievedOrder)
 
+	// Search Order : Server streaming scenario
+	searchStream, _ := client.SearchOrders(ctx, &pb.OrderID{Message: "Google"})
+	for {
+		searchOrder, err := searchStream.Recv()
+		if err == io.EOF {
+			log.Print("EOF")
+			break
+		}
+
+		if err == nil {
+			log.Print("Search Result : ", searchOrder)
+		}
+	}
+
 }
-
-// // Search Order : Server streaming scenario
-// searchStream, 	_ := client.SearchOrders(ctx, &wrapper.StringValue{Value: "Google"})
-// for {
-// 	searchOrder, err := searchStream.Recv()
-// 	if err == io.EOF {
-// 		log.Print("EOF")
-// 		break
-// 	}
-
-// 	if err == nil {
-// 		log.Print("Search Result : ", searchOrder)
-// 	}
-// }
 
 // // =========================================
 // // Update Orders : Client streaming scenario
