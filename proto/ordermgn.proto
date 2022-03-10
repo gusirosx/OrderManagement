@@ -3,11 +3,11 @@ syntax = "proto3";
 option go_package = "/OrderManagement;OrderManagement";
 
 service OrderManagement {
-    rpc addOrder(Order) returns (StringValue);
-    rpc getOrder(StringValue) returns (Order);
-    rpc searchOrders(StringValue) returns (stream Order);
-    rpc updateOrders(stream Order) returns (StringValue);
-    rpc processOrders(stream StringValue) returns (stream CombinedShipment);
+    rpc addOrder(Order) returns (OrderID);
+    rpc getOrder(OrderID) returns (Order);
+    // rpc searchOrders(StringValue) returns (stream Order);
+    // rpc updateOrders(stream Order) returns (StringValue);
+    // rpc processOrders(stream StringValue) returns (stream CombinedShipment);
 }
 
 message Order {
@@ -18,10 +18,15 @@ message Order {
     string destination = 5;
 }
 
-message CombinedShipment {
-    string id = 1;
-    string status = 2;
-    repeated Order ordersList = 3;
+// message CombinedShipment {
+//     string id = 1;
+//     string status = 2;
+//     repeated Order ordersList = 3;
+// }
+
+message OrderID {
+  // The string value.
+  string message = 1;
 }
 
   // The JSON representation for `StringValue` is JSON string.
