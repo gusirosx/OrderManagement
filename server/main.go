@@ -4,6 +4,7 @@ import (
 	pb "OrderManagement/ecommerce"
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"strings"
@@ -63,27 +64,25 @@ func (s *server) SearchOrders(searchQuery *pb.OrderID, stream pb.OrderManagement
 	return nil
 }
 
-// // Client-side Streaming RPC
-// func (s *server) UpdateOrders(stream pb.OrderManagement_UpdateOrdersServer) error {
+// Client-side Streaming RPC
+func (s *server) UpdateOrders(stream pb.OrderManagement_UpdateOrdersServer) error {
+	ordersStr := "Updated Order IDs : "
+	for {
+		order, err := stream.Recv()
+		if err == io.EOF {
+			// Finished reading the order stream.
+			return stream.SendAndClose(&pb.OrderID{Message: "Orders processed " + ordersStr})
+		}
+		if err != nil {
+			return err
+		}
+		// Update order
+		OrderMap[order.Id] = *order
 
-// 	ordersStr := "Updated Order IDs : "
-// 	for {
-// 		order, err := stream.Recv()
-// 		if err == io.EOF {
-// 			// Finished reading the order stream.
-// 			return stream.SendAndClose(&pb.StringValue{Value: "Orders processed " + ordersStr})
-// 		}
-
-// 		if err != nil {
-// 			return err
-// 		}
-// 		// Update order
-// 		orderMap[order.Id] = *order
-
-// 		log.Printf("Order ID : %s - %s", order.Id, "Updated")
-// 		ordersStr += order.Id + ", "
-// 	}
-// }
+		log.Printf("Order ID : %s - %s", order.Id, "Updated")
+		ordersStr += order.Id + ", "
+	}
+}
 
 // // Bi-directional Streaming RPC
 // func (s *server) ProcessOrders(stream pb.OrderManagement_ProcessOrdersServer) error {
