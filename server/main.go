@@ -42,7 +42,6 @@ func (s *server) GetOrder(ctx context.Context, orderId *pb.OrderID) (*pb.Order, 
 		return &ord, status.New(codes.OK, "").Err()
 	}
 	return nil, status.Errorf(codes.NotFound, "Order does not exist. : ", orderId)
-
 }
 
 // Server-side Streaming RPC
@@ -84,59 +83,59 @@ func (s *server) UpdateOrders(stream pb.OrderManagement_UpdateOrdersServer) erro
 	}
 }
 
-// // Bi-directional Streaming RPC
-// func (s *server) ProcessOrders(stream pb.OrderManagement_ProcessOrdersServer) error {
+// Bi-directional Streaming RPC
+func (s *server) ProcessOrders(stream pb.OrderManagement_ProcessOrdersServer) error {
 
-// 	batchMarker := 1
-// 	var combinedShipmentMap = make(map[string]pb.CombinedShipment)
-// 	for {
-// 		orderId, err := stream.Recv()
-// 		log.Printf("Reading Proc order : %s", orderId)
-// 		if err == io.EOF {
-// 			// Client has sent all the messages
-// 			// Send remaining shipments
-// 			log.Printf("EOF : %s", orderId)
-// 			for _, shipment := range combinedShipmentMap {
-// 				if err := stream.Send(&shipment); err != nil {
-// 					return err
-// 				}
-// 			}
-// 			return nil
-// 		}
-// 		if err != nil {
-// 			log.Println(err)
-// 			return err
-// 		}
+	batchMarker := 1
+	var combinedShipmentMap = make(map[string]pb.CombinedShipment)
+	for {
+		orderId, err := stream.Recv()
+		log.Printf("Reading Proc order : %s", orderId)
+		if err == io.EOF {
+			// Client has sent all the messages
+			// Send remaining shipments
+			log.Printf("EOF : %s", orderId)
+			for _, shipment := range combinedShipmentMap {
+				if err := stream.Send(&shipment); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+		if err != nil {
+			log.Println(err)
+			return err
+		}
 
-// 		destination := orderMap[orderId.GetValue()].Destination
-// 		shipment, found := combinedShipmentMap[destination]
+		destination := OrderMap[orderId.Message].Destination
+		shipment, found := combinedShipmentMap[destination]
 
-// 		if found {
-// 			ord := orderMap[orderId.GetValue()]
-// 			shipment.OrdersList = append(shipment.OrdersList, &ord)
-// 			combinedShipmentMap[destination] = shipment
-// 		} else {
-// 			comShip := pb.CombinedShipment{Id: "cmb - " + (orderMap[orderId.GetValue()].Destination), Status: "Processed!"}
-// 			ord := orderMap[orderId.GetValue()]
-// 			comShip.OrdersList = append(shipment.OrdersList, &ord)
-// 			combinedShipmentMap[destination] = comShip
-// 			log.Print(len(comShip.OrdersList), comShip.GetId())
-// 		}
+		if found {
+			ord := OrderMap[orderId.Message]
+			shipment.OrdersList = append(shipment.OrdersList, &ord)
+			combinedShipmentMap[destination] = shipment
+		} else {
+			comShip := pb.CombinedShipment{Id: "cmb - " + (OrderMap[orderId.Message].Destination), Status: "Processed!"}
+			ord := OrderMap[orderId.Message]
+			comShip.OrdersList = append(shipment.OrdersList, &ord)
+			combinedShipmentMap[destination] = comShip
+			log.Print(len(comShip.OrdersList), comShip.GetId())
+		}
 
-// 		if batchMarker == orderBatchSize {
-// 			for _, comb := range combinedShipmentMap {
-// 				log.Printf("Shipping : %v -> %v", comb.Id, len(comb.OrdersList))
-// 				if err := stream.Send(&comb); err != nil {
-// 					return err
-// 				}
-// 			}
-// 			batchMarker = 0
-// 			combinedShipmentMap = make(map[string]pb.CombinedShipment)
-// 		} else {
-// 			batchMarker++
-// 		}
-// 	}
-// }
+		if batchMarker == orderBatchSize {
+			for _, comb := range combinedShipmentMap {
+				log.Printf("Shipping : %v -> %v", comb.Id, len(comb.OrdersList))
+				if err := stream.Send(&comb); err != nil {
+					return err
+				}
+			}
+			batchMarker = 0
+			combinedShipmentMap = make(map[string]pb.CombinedShipment)
+		} else {
+			batchMarker++
+		}
+	}
+}
 
 // AddProduct implements pb.AddProduct
 
